@@ -1,7 +1,3 @@
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,7 +27,9 @@ void freeTree(RBTree*);
 void printTree(RBTree*);
 
 RBTree* newRBTree() {
-    return (RBTree*)calloc(1, sizeof(RBTree));
+    RBTree* ret = (RBTree*)malloc(sizeof(RBTree));
+    ret->root = NULL;
+    return ret;
 }
 
 void find(RBTree* tree, char* value) {
@@ -89,15 +87,12 @@ void rotateRight(RBTree* tree, struct node* node) {
 void add(RBTree* tree, char* tempString) {
     char* value = (char*)malloc(sizeof(char) * strlen(tempString) + 1);
     strcpy(value, tempString);
-    struct node* newNode= (struct node*)calloc(1, sizeof(struct node));
+    struct node* newNode = (struct node*)malloc(sizeof(struct node));
+    newNode->prev = newNode->left = newNode->right = NULL;
     newNode->string = value;
     struct node* temp = tree->root;
     while (temp) {
-#ifndef ADD
         if (!strcmp(value, temp->string)) break;
-#else
-#undef ADD
-#endif
         newNode->prev = temp;
         temp = (strcmp(value, temp->string) CMP 0) ? temp->left : temp->right;
     }
@@ -133,6 +128,7 @@ void add(RBTree* tree, char* tempString) {
             }
         }
     } else {
+        newNode->color = black;
         tree->root = newNode;
     }
 }
@@ -205,7 +201,3 @@ int main(int argc, char** argv) {
         }
     }
 }
-
-#ifdef __cplusplus
-}
-#endif
