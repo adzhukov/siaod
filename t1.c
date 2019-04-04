@@ -1,7 +1,3 @@
-#ifdef __cplusplus
-extern "C" {
-#endif
-    
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -130,20 +126,20 @@ int main(int argc, char** argv) {
     while (1) {
         memset(cmd, 0, maxStringLen);
         fgets(cmd, maxStringLen-1, stdin);
-        strtok(cmd, "\n");
+        char* token = strtok(cmd, " ");
         switch (cmd[0]) {
             case 'a': {
-                add(list, cmd+2);
+                add(list, strtok(NULL, "\n"));
                 printList(list);
                 break;
             }
             case 'r': {
-                removeFirst(list, cmd+2);
+                removeFirst(list, strtok(NULL, "\n"));
                 printList(list);
                 break;
             }
             case 'f': {
-                find(list, cmd+2);
+                find(list, strtok(NULL, "\n"));
                 break;
             }
             case 'p':
@@ -157,7 +153,3 @@ int main(int argc, char** argv) {
         }
     }
 }
-
-#ifdef __cplusplus
-}
-#endif

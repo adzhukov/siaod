@@ -12,7 +12,7 @@ struct node {
     int color;
 };
 
-enum { black = 0, red = 1};
+enum {black = 0, red = 1};
 
 typedef struct {
     struct node* root;
@@ -85,17 +85,19 @@ void rotateRight(RBTree* tree, struct node* node) {
 }
 
 void add(RBTree* tree, char* tempString) {
+    struct node* temp = tree->root;
+    struct node* prev = NULL;
+    while (temp) {
+        if (!strcmp(tempString, temp->string)) return;
+        prev = temp;
+        temp = (strcmp(tempString, temp->string) CMP 0) ? temp->left : temp->right;
+    }
     char* value = (char*)malloc(sizeof(char) * strlen(tempString) + 1);
     strcpy(value, tempString);
     struct node* newNode = (struct node*)malloc(sizeof(struct node));
-    newNode->prev = newNode->left = newNode->right = NULL;
+    newNode->left = newNode->right = NULL;
+    newNode->prev = prev;
     newNode->string = value;
-    struct node* temp = tree->root;
-    while (temp) {
-        if (!strcmp(value, temp->string)) break;
-        newNode->prev = temp;
-        temp = (strcmp(value, temp->string) CMP 0) ? temp->left : temp->right;
-    }
     if (newNode->prev) {
         if (strcmp(value, (newNode->prev)->string) CMP 0)
             newNode->prev->left = newNode;

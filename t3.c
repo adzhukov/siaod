@@ -23,12 +23,12 @@ void freeHashTable(hashTable*);
 void addToHashTable(hashTable*, char*, char*);
 void printHashTable(hashTable*);
 void removeValueForKey(hashTable*, char*);
-void printValueForKey(hashTable*, char*);
+const char* getValueForKey(hashTable*, char*);
 unsigned long getStringHash(char*);
 
 LinkedList* newList();
 void freeList(LinkedList *);
-void addToList(hashTable*, LinkedList*, char*, char*);
+int addToList(LinkedList*, char*, char*);
 void freeNode(struct linkedListNode* );
 
 hashTable* newHashTable() {
@@ -66,35 +66,34 @@ void printHashTable(hashTable* table) {
     }
 }
 
-void printValueForKey(hashTable* table, char* key) {
+const char* getValueForKey(hashTable* table, char* key) {
     for (size_t i = 0; i < table->size; i++) {
         struct linkedListNode* node = table->list[i]->first;
         while (node) {
             if (!strcmp(key, node->key)) {
-                printf("key: %s; value: %s\n", key, node->value);
-                return;
+                return node->value;
             }
             node = node->next;
         }
     }
-    printf("Value for key %s not found\n", key);
+    return "";
 }
 
 void resizeHashTable(hashTable* table) {
+    size_t oldSize = table->size;
     table->size <<= 1;
     table->list = (LinkedList**)realloc(table->list, sizeof(LinkedList) * table->size);
-    for (size_t i = table->size >> 1; i < table->size; i++)
+    for (size_t i = oldSize; i < table->size; i++)
         table->list[i] = newList();
-    for (size_t i = 0; i < table->size >> 1; i++) {
+    for (size_t i = 0; i < oldSize; i++) {
         LinkedList* list = table->list[i];
         struct linkedListNode* node = list->first;
         struct linkedListNode* prevNode = NULL;
         while (node) {
             unsigned long newIndex = getStringHash(node->key) % table->size;
-            if (newIndex >= table->size >> 1) {
+            if (newIndex >= oldSize) {
                 table->list[newIndex] = newList();
-                addToList(table, table->list[newIndex], node->key, node->value);
-                table->used--;
+                addToList(table->list[newIndex], node->key, node->value);
                 if (prevNode) {
                     prevNode->next = node->next;
                 } else {
@@ -113,7 +112,8 @@ void resizeHashTable(hashTable* table) {
 
 void addToHashTable(hashTable* table, char* key, char* value) {
     unsigned long index = getStringHash(key) % table->size;
-    addToList(table, table->list[index], key, value);
+    if (addToList(table->list[index], key, value))
+        table->used++;
     if ((float)(table->used)/(float)(table->size) > 0.5)
         resizeHashTable(table);
 }
@@ -145,7 +145,7 @@ LinkedList* newList() {
     return ret;
 }
 
-void addToList(hashTable* table, LinkedList* list, char* tempKey, char* tempValue) {
+int addToList(LinkedList* list, char* tempKey, char* tempValue) {
     char* value = (char*)malloc(sizeof(char) * (strlen(tempValue) + 1));
     strcpy(value, tempValue);
     struct linkedListNode* temp = list->first;
@@ -153,20 +153,18 @@ void addToList(hashTable* table, LinkedList* list, char* tempKey, char* tempValu
         if (!strcmp(tempKey, temp->key)) {
             free(temp->value);
             temp->value = value;
-            return;
+            return 0;
         }
         temp = temp->next;
     }
     char* key = (char*)malloc(sizeof(char) * (strlen(tempKey) + 1));
     strcpy(key, tempKey);
-    struct linkedListNode* prev = NULL;
     struct linkedListNode* newNode = (struct linkedListNode*)malloc(sizeof(struct linkedListNode));
     newNode->value = value;
     newNode->key = key;
-    newNode->next = NULL;
-    table->used++;
     newNode->next = list->first;
     list->first = newNode;
+    return 1;
 }
 
 void freeNode(struct linkedListNode* node) {
@@ -192,7 +190,7 @@ int main(int argc, char** argv) {
     char cmd[maxStringLen];
     puts("usage: a <key> <value> - add\n" \
          "       r <key> - remove\n" \
-         "       f <key> - find value for key\n" \
+         "       f <key> - get value for key\n" \
          "       p - print table\n" \
          "       q - quit");
     while (1) {
@@ -207,13 +205,12 @@ int main(int argc, char** argv) {
                 printHashTable(table);
                 break;
             }
-            case 'r': {
+            case 'r':
                 removeValueForKey(table, strtok(NULL, "\n"));
                 printHashTable(table);
                 break;
-            }
             case 'f':
-                printValueForKey(table, strtok(NULL, "\n"));
+                printf("%s\n", getValueForKey(table, strtok(NULL, "\n")));
                 break;
             case 'p':
                 printHashTable(table);
