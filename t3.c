@@ -1,3 +1,5 @@
+// Hash table, collision resolved by separate chaining using linked list. Dynamic resizing.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

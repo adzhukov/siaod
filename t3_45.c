@@ -1,3 +1,5 @@
+// Hash table, collision resolved by open addressing with linear probing.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

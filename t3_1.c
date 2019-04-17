@@ -1,3 +1,5 @@
+// Hash table, collision resolved by separate chaining using array list.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
