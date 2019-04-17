@@ -19,7 +19,9 @@ void removeFirst(LinkedList*, char*);
 void find(LinkedList*, char*);
 
 LinkedList* new_list() {
-    return (LinkedList*)calloc(1, sizeof(LinkedList));
+    LinkedList* ret = (LinkedList*)malloc(sizeof(LinkedList));
+    ret->first = NULL;
+    return ret;
 }
 
 void add(LinkedList* list, char* tempString) {

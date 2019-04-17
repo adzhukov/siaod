@@ -18,7 +18,7 @@ typedef struct table{
     size_t used;
 } hashTable;
 
-hashTable* newHashTable();
+hashTable* newHashTable(size_t);
 void freeHashTable(hashTable*);
 void addToHashTable(hashTable*, char*, char*);
 void printHashTable(hashTable*);
@@ -31,9 +31,9 @@ void freeList(LinkedList *);
 int addToList(LinkedList*, char*, char*);
 void freeNode(struct linkedListNode* );
 
-hashTable* newHashTable() {
+hashTable* newHashTable(size_t size) {
     hashTable* ret = (hashTable*)malloc(sizeof(hashTable));
-    ret->size = 2;
+    ret->size = size;
     ret->list = (LinkedList**)malloc(ret->size * sizeof(LinkedList));
     for (size_t i = 0; i < ret->size; i++)
         ret->list[i] = newList();
@@ -70,51 +70,17 @@ const char* getValueForKey(hashTable* table, char* key) {
     for (size_t i = 0; i < table->size; i++) {
         struct linkedListNode* node = table->list[i]->first;
         while (node) {
-            if (!strcmp(key, node->key)) {
+            if (!strcmp(key, node->key))
                 return node->value;
-            }
             node = node->next;
         }
     }
-    return "";
-}
-
-void resizeHashTable(hashTable* table) {
-    size_t oldSize = table->size;
-    table->size <<= 1;
-    table->list = (LinkedList**)realloc(table->list, sizeof(LinkedList) * table->size);
-    for (size_t i = oldSize; i < table->size; i++)
-        table->list[i] = newList();
-    for (size_t i = 0; i < oldSize; i++) {
-        LinkedList* list = table->list[i];
-        struct linkedListNode* node = list->first;
-        struct linkedListNode* prevNode = NULL;
-        while (node) {
-            unsigned long newIndex = getStringHash(node->key) % table->size;
-            if (newIndex >= oldSize) {
-                table->list[newIndex] = newList();
-                addToList(table->list[newIndex], node->key, node->value);
-                if (prevNode) {
-                    prevNode->next = node->next;
-                } else {
-                    list->first = list->first->next;
-                }
-                struct linkedListNode* temp = node->next;
-                freeNode(node);
-                node = temp;
-            } else {
-                prevNode = node;
-                node = node->next;
-            }
-        }
-    }
+    return NULL;
 }
 
 void addToHashTable(hashTable* table, char* key, char* value) {
     unsigned long index = getStringHash(key) % table->size;
     table->used += addToList(table->list[index], key, value);
-    if ((float)(table->used)/(float)(table->size) > 0.5)
-        resizeHashTable(table);
 }
 
 void removeValueForKey(hashTable* table, char* key) {
@@ -184,7 +150,7 @@ void freeList(LinkedList* list) {
 }
 
 int main(int argc, char** argv) {
-    hashTable* table = newHashTable();
+    hashTable* table = newHashTable(10);
     size_t maxStringLen = (argc == 2) ? atoi(argv[1]) : 256;
     char cmd[maxStringLen];
     puts("usage: a <key> <value> - add\n" \
@@ -193,13 +159,14 @@ int main(int argc, char** argv) {
          "       p - print table\n" \
          "       q - quit");
     while (1) {
-        memset(cmd, 0, maxStringLen);
         fgets(cmd, maxStringLen-1, stdin);
         char* token = strtok(cmd, " ");
         switch (cmd[0]) {
             case 'a': {
                 char* key = strtok(NULL, " ");
+                key = key ? key : "";
                 char* value = strtok(NULL, "\n");
+                value = value ? value : "";
                 addToHashTable(table, key, value);
                 printHashTable(table);
                 break;
@@ -208,15 +175,22 @@ int main(int argc, char** argv) {
                 removeValueForKey(table, strtok(NULL, "\n"));
                 printHashTable(table);
                 break;
-            case 'f':
-                printf("%s\n", getValueForKey(table, strtok(NULL, "\n")));
+            case 'f': {
+                const char* value = getValueForKey(table, strtok(NULL, "\n"));
+                value = value ? value : "Not Found";
+                printf("%s\n", value);
                 break;
+            }
             case 'p':
                 printHashTable(table);
                 break;
             case 'q':
                 freeHashTable(table);
                 return 0;
+            case 'c':
+                freeHashTable(table);
+                table = newHashTable(atoi(strtok(NULL, "\n")));
+                break;
             default:
                 break;
         }
