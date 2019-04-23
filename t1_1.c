@@ -58,7 +58,7 @@ void resizeList(List* list) {
 void addToList(List* list, char* value) {
     size_t i = 0;
     size_t oldSize = list->used++;
-    if (list->used == list->size)
+    if (list->used > list->size)
         resizeList(list);
     for (; i < oldSize; i++)
         if (strcmp(value, list->first[i]) < 0)
@@ -72,7 +72,7 @@ void addToList(List* list, char* value) {
 
 void addToListBefore(List* list, char* value, char* before) {
     size_t oldSize = list->used++;
-    if (list->used == list->size)
+    if (list->used > list->size)
         resizeList(list);
     for (size_t i = 0; i < oldSize; i++)
         if (!strcmp(before, list->first[i])) {
@@ -88,7 +88,7 @@ void addToListBefore(List* list, char* value, char* before) {
 
 void addToListAfter(List* list, char* value, char* after) {
     size_t oldSize = list->used++;
-    if (list->used == list->size)
+    if (list->used > list->size)
         resizeList(list);
     for (size_t i = 0; i < oldSize; i++)
         if (!strcmp(after, list->first[i])) {
@@ -130,21 +130,22 @@ int main(int argc, char** argv) {
     List* list = newList();
     size_t maxStringLen = (argc == 2) ? atoi(argv[1]) : 256;
     char cmd[maxStringLen];
-    puts("usage: a <string> - add\n" \
-         "       s <string> <before> - add before\n" \
-         "       d <string> <after> - add after\n" \
-         "       r <string> - remove first\n" \
-         "       t <string> - remove all\n" \
-         "       f <string> - find\n" \
-         "       p - print list\n" \
-         "       q - quit");
     while (1) {
+        puts("\nusage: a <string> - add\n" \
+             "       s <string> <before> - add before\n" \
+             "       d <string> <after> - add after\n" \
+             "       r <string> - remove first\n" \
+             "       t <string> - remove all\n" \
+             "       f <string> - find\n" \
+             "       p - print list\n" \
+             "       q - quit");
         memset(cmd, 0, maxStringLen);
         fgets(cmd, maxStringLen-1, stdin);
         char* token = strtok(cmd, " ");
         switch (cmd[0]) {
             case 'a':
                 addToList(list, strtok(NULL, " \n"));
+                printList(list);
                 break;
             case 's': {
                 char* value = strtok(NULL, " \n");
@@ -152,6 +153,7 @@ int main(int argc, char** argv) {
                 char* before = strtok(NULL, " \n");
                 before = before ? before : "";
                 addToListBefore(list, value, before);
+                printList(list);
                 break;
             }
             case 'd': {
@@ -160,18 +162,21 @@ int main(int argc, char** argv) {
                 char* after = strtok(NULL, " \n");
                 after = after ? after : "";
                 addToListAfter(list, value, after);
+                printList(list);
                 break;
             }
             case 'r': {
                 char* value = strtok(NULL, " \n");
                 value = value ? value : "";
                 removeFirst(list, value);
+                printList(list);
                 break;
             }
             case 't': {
                 char* value = strtok(NULL, " \n");
                 value = value ? value : "";
                 removeAll(list, value);
+                printList(list);
                 break;
             }
             case 'f': {
