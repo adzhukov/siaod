@@ -4,9 +4,10 @@
  *      A
  *      +-B
  *      | +-C
- *      | \-D
- *      \-E
- *        \-F
+ *      | | \-D
+ *      | \-E
+ *      \-F
+ *        \-H
  *
  */
 
@@ -40,6 +41,17 @@ size_t getTreeHeight(Tree*);
 void printTreeStruct(struct printTreeStruct*);
 void freeTreePrintStruct(struct printTreeStruct*);
 void fill(Tree* tree, struct printTreeStruct*);
+struct node *newNode(char*, size_t);
+
+struct node *newNode(char *value, size_t size) {
+    size++;
+    struct node *ret = (struct node*)malloc(sizeof(struct node));
+    ret->nodes = (struct node**)malloc(sizeof(struct node*) * size);
+    for (size_t i = 0; i < size; i++)
+        ret->nodes[i] = NULL;
+    ret->string = value;
+    return ret;
+}
 
 Tree* newTree() {
     Tree* ret = (Tree*)malloc(sizeof(Tree));
@@ -48,36 +60,13 @@ Tree* newTree() {
 }
 
 void makeTestTree(Tree* tree) {
-    tree->root = (struct node*)malloc(sizeof(struct node));
-    tree->root->string = "A";
-    struct node** nodes = tree->root->nodes = (struct node**)malloc(sizeof(struct node*) * 3);
-    
-    nodes[0] = (struct node*)malloc(sizeof(struct node*));
-    nodes[0]->nodes = (struct node**)malloc(sizeof(struct node*) * 3);
-    nodes[0]->nodes[2] = NULL;
-    nodes[0]->string = "B";
-    
-    nodes[0]->nodes[0] = (struct node*)malloc(sizeof(struct node*));
-    nodes[0]->nodes[0]->nodes = (struct node**)malloc(sizeof(struct node*));
-    nodes[0]->nodes[0]->nodes[0] = NULL;
-    nodes[0]->nodes[0]->string = "C";
-    
-    nodes[0]->nodes[1] = (struct node*)malloc(sizeof(struct node*));
-    nodes[0]->nodes[1]->nodes = (struct node**)malloc(sizeof(struct node*));
-    nodes[0]->nodes[1]->nodes[0] = NULL;
-    nodes[0]->nodes[1]->string = "D";
-    
-    nodes[1] = (struct node*)malloc(sizeof(struct node*));
-    nodes[1]->nodes = (struct node**)malloc(sizeof(struct node*) * 2);
-    nodes[1]->nodes[1] = NULL;
-    nodes[1]->string = "E";
-    
-    nodes[1]->nodes[0] = (struct node*)malloc(sizeof(struct node*));
-    nodes[1]->nodes[0]->nodes = (struct node**)malloc(sizeof(struct node*));
-    nodes[1]->nodes[0]->nodes[0] = NULL;
-    nodes[1]->nodes[0]->string = "F";
-    
-    nodes[2] = NULL;
+    struct node* root = tree->root = newNode("A", 2);
+    struct node* nodeB = root->nodes[0] = newNode("B", 2);
+    struct node* nodeC = nodeB->nodes[0] = newNode("C", 1);
+    nodeC->nodes[0] = newNode("D", 0);
+    nodeB->nodes[1] = newNode("E", 0);
+    struct node* nodeF = root->nodes[1] = newNode("F", 1);
+    nodeF->nodes[0] = newNode("H", 0);
 }
 
 void _freeTree(struct node* node) {
