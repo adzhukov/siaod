@@ -126,13 +126,13 @@ int main(int argc, char** argv) {
     hashTable* table = newHashTable(10);
     size_t maxStringLen = 256;
     char input[maxStringLen];
-    puts("usage: a <key> <value> - add value for key\n" \
-         "       r <key> - remove value for key\n" \
-         "       t <key> - remove value for key & reorder\n" \
-         "       f <key> - get value for key\n" \
-         "       p - print table\n" \
-         "       q - quit");
     while (1) {
+        puts("usage: a <key> <value> - add value for key\n" \
+             "       r <key> - remove value for key\n" \
+             "       t <key> - remove value for key & reorder\n" \
+             "       f <key> - get value for key\n" \
+             "       p - print table\n" \
+             "       q - quit");
         fgets(input, maxStringLen-1, stdin);
         char* token = strtok(input, " ");
         switch (input[0]) {
