@@ -77,7 +77,7 @@ int addValueForKey(hashTable* table, const char* key, const char* value) {
             table->key[current] = strdup(key);
             table->value[current] = strdup(value);
             return 0;
-        } else if (!strcmp(key, table->key[current])){
+        } else if (!strcmp(key, table->key[current])) {
             free(table->value[current]);
             table->value[current] = strdup(value);
             return 0;

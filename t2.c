@@ -94,8 +94,7 @@ void add(RBTree* tree, char* tempString) {
         prev = temp;
         temp = (strcmp(tempString, temp->string) CMP 0) ? temp->left : temp->right;
     }
-    char* value = (char*)malloc(sizeof(char) * strlen(tempString) + 1);
-    strcpy(value, tempString);
+    char* value = strdup(tempString);
     struct node* newNode = (struct node*)malloc(sizeof(struct node));
     newNode->left = newNode->right = NULL;
     newNode->prev = prev;

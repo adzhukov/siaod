@@ -117,10 +117,8 @@ void removeValueForKey(hashTable* table, char* key) {
 
 static inline void fillTreeNode(struct treeNode* node, char* key, char* value) {
     node->left = node->right = NULL;
-    node->key = (char*)malloc(sizeof(char) * (strlen(key) + 1));
-    strcpy(node->key, key);
-    node->value = (char*)malloc(sizeof(char) * (strlen(value) + 1));
-    strcpy(node->value, value);
+    node->key = strdup(key);
+    node->value = strdup(value);
 }
 
 void addToTree(Tree* tree, char* key, char* value) {
@@ -136,8 +134,7 @@ void addToTree(Tree* tree, char* key, char* value) {
         cmp = strcmp(node->key, key);
         if (!cmp) {
             free(node->value);
-            node->value = (char*)malloc(sizeof(char) * (strlen(value) + 1));
-            strcpy(node->value, value);
+            node->value = strdup(value);
             return;
         }
         prev = node;

@@ -65,8 +65,7 @@ void addToList(List* list, char* value) {
             break;
     for (size_t j = oldSize ; j > i; j--)
         list->first[j] = list->first[j - 1];
-    list->first[i] = (char*)malloc(sizeof(char) * (strlen(value) + 1));
-    strcpy(list->first[i], value);
+    list->first[i] = strdup(value);
     return;
 }
 
@@ -78,12 +77,10 @@ void addToListBefore(List* list, char* value, char* before) {
         if (!strcmp(before, list->first[i])) {
             for (size_t j = oldSize; j > i; j--)
                 list->first[j] = list->first[j-1];
-            list->first[i] = (char*)malloc(sizeof(char) * (strlen(value) + 1));
-            strcpy(list->first[i], value);
+            list->first[i] = strdup(value);
             return;
         }
-    list->first[oldSize] = (char*)malloc(sizeof(char) * (strlen(value) + 1));
-    strcpy(list->first[oldSize], value);
+    list->first[oldSize] = strdup(value);
 }
 
 void addToListAfter(List* list, char* value, char* after) {
@@ -95,12 +92,10 @@ void addToListAfter(List* list, char* value, char* after) {
             i++;
             for (size_t j = oldSize; j > i; j--)
                 list->first[j] = list->first[j - 1];
-            list->first[i] = (char*)malloc(sizeof(char) * (strlen(value) + 1));
-            strcpy(list->first[i], value);
+            list->first[i] = strdup(value);
             return;
         }
-    list->first[oldSize] = (char*)malloc(sizeof(char) * (strlen(value) + 1));
-    strcpy(list->first[oldSize], value);
+    list->first[oldSize] = strdup(value);
 }
 
 

@@ -27,16 +27,13 @@ LinkedList* new_list() {
 }
 
 void add(LinkedList* list, char* tempString) {
-    char* value = (char*)malloc(sizeof(char) * strlen(tempString) + 1);
-    strcpy(value, tempString);
+    char* value = strdup(tempString);
     struct linkedListNode* prev = NULL;
     struct linkedListNode* newNode = (struct linkedListNode*)malloc(sizeof(struct linkedListNode));
     newNode->string = value;
     newNode->next = NULL;
-    if (!list->first) {
+    if (!list->first)
         list->first = newNode;
-        return;
-    }
     struct linkedListNode* temp = list->first;
     while (1) {
         if (strcmp(temp->string, value)>0) {

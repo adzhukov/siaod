@@ -113,14 +113,11 @@ int addToList(List* list, char* key, char* value) {
         resizeList(list);
     for (size_t i = 0; i < oldSize; i++)
         if (!strcmp(key, list->key[i])) {
-            list->value[i] = (char*)malloc(sizeof(char) * (strlen(value) + 1));
-            strcpy(list->value[i], value);
+            list->value[i] = strdup(value);
             return 0;
         }
-    list->key[oldSize] = (char*)malloc(sizeof(char) * (strlen(key) + 1));
-    strcpy(list->key[oldSize], key);
-    list->value[oldSize] = (char*)malloc(sizeof(char) * (strlen(value) + 1));
-    strcpy(list->value[oldSize], value);
+    list->key[oldSize] = strdup(key);
+    list->value[oldSize] = strdup(value);
     return 1;
 }
 

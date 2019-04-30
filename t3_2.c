@@ -113,8 +113,7 @@ LinkedList* newList() {
 }
 
 int addToList(LinkedList* list, char* tempKey, char* tempValue) {
-    char* value = (char*)malloc(sizeof(char) * (strlen(tempValue) + 1));
-    strcpy(value, tempValue);
+    char* value = strdup(tempValue);
     struct linkedListNode* temp = list->first;
     while (temp) {
         if (!strcmp(tempKey, temp->key)) {
@@ -124,8 +123,7 @@ int addToList(LinkedList* list, char* tempKey, char* tempValue) {
         }
         temp = temp->next;
     }
-    char* key = (char*)malloc(sizeof(char) * (strlen(tempKey) + 1));
-    strcpy(key, tempKey);
+    char* key = strdup(tempKey);
     struct linkedListNode* newNode = (struct linkedListNode*)malloc(sizeof(struct linkedListNode));
     newNode->value = value;
     newNode->key = key;
