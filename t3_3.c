@@ -185,7 +185,8 @@ void removeFromTree(Tree* tree, char* key) {
                 node->key = temp ? node->left->key : node->right->key;
                 node->value = temp ? node->left->value : node->right->value;
                 free(temp ? node->left : node->right);
-                node->left = node->right = NULL;
+                node->left = temp ? node->left->left : node->right->left;
+                node->right = temp ? node->left->right : node->right->right;
             }
             return;
         }
@@ -208,7 +209,7 @@ int main(int argc, char** argv) {
         char* token = strtok(cmd, " ");
         switch (cmd[0]) {
             case 'a': {
-                char* key = strtok(NULL, " ");
+                char* key = strtok(NULL, " \n");
                 key = key ? key : "";
                 char* value = strtok(NULL, "\n");
                 value = value ? value : "";
@@ -224,7 +225,9 @@ int main(int argc, char** argv) {
                 break;
             }
             case 'f': {
-                const char* value = getValueForKey(table, strtok(NULL, "\n"));
+                char* key = strtok(NULL, "\n");
+                key = key ? key : "";
+                const char* value = getValueForKey(table, key);
                 value = value ? value : "Not Found";
                 printf("%s\n", value);
                 break;
