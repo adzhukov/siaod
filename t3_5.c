@@ -5,7 +5,6 @@
 typedef struct table{
     char** key;
     char** value;
-    int* tombstone;
     size_t size;
 } hashTable;
 
@@ -15,21 +14,20 @@ int addValueForKey(hashTable*, const char*, const char*);
 void printHashTable(hashTable*);
 void removeValueForKey(hashTable*, char*);
 const char* getValueForKey(hashTable*, const char*);
-unsigned long getStringHash(const char*);
+size_t getStringHash(const char*);
 
 hashTable* newHashTable(size_t size) {
     hashTable* ret = (hashTable*)malloc(sizeof(hashTable));
     ret->size = size;
     ret->key = (char**)malloc(sizeof(char*) * size);
-    ret->value = (char**)malloc(sizeof(char*) * size);
-    ret->tombstone = (int*)malloc(sizeof(int) * size);
     for (size_t i = 0; i < size; i++)
-        ret->tombstone[i] = 0;
+        ret->key[i] = NULL;
+    ret->value = (char**)malloc(sizeof(char*) * size);
     return ret;
 }
 
-unsigned long getStringHash(const char* value) {
-    unsigned long hash = 7;
+size_t getStringHash(const char* value) {
+    size_t hash = 7;
     for (size_t i = 0; i < strlen(value); i++)
         hash = hash * 31 + value[i];
     return hash;
@@ -37,18 +35,17 @@ unsigned long getStringHash(const char* value) {
 
 void freeHashTable(hashTable* table) {
     for (size_t i = 0; i < table->size; i++) {
-        if (table->tombstone[i]) {
+        if (table->key[i]) {
             free(table->key[i]);
             free(table->value[i]);
         }
     }
-    free(table->tombstone);
     free(table);
 }
 
 void printHashTable(hashTable* table) {
     for (size_t i = 0; i < table->size; i++) {
-        if (table->tombstone[i]) {
+        if (table->key[i]) {
             printf("  key: %s; value: %s\n", table->key[i], table->value[i]);
         }
     }
@@ -56,55 +53,64 @@ void printHashTable(hashTable* table) {
 
 const char* getValueForKey(hashTable* table, const char* key) {
     size_t index = getStringHash(key) % table->size;
-    for (size_t i = index; i < table->size; i++)
-        if (table->tombstone[i] && !strcmp(table->key[i], key))
-            return table->value[i];
+    size_t current = index;
+    do {
+        if (table->key[current] && !strcmp(table->key[current], key))
+            return table->value[current];
+        current = (current + 1) % table->size;
+    } while (current != index);
     return NULL;
 }
 
 int addValueForKey(hashTable* table, const char* key, const char* value) {
-    unsigned long index = getStringHash(key) % table->size;
-    for (size_t i = index; i < table->size; i++) {
-        if (table->tombstone[i]) {
-            if (!strcmp(table->key[i], key)) {
-                free(table->value[i]);
-                table->value[i] = (char*)malloc(sizeof(char) * (strlen(key) + 1));
-                strcpy(table->value[i], value);
+    size_t index = getStringHash(key) % table->size;
+    size_t current = index;
+    do {
+        if (table->key[current]) {
+            if (!strcmp(table->key[current], key)) {
+                free(table->value[current]);
+                table->value[current] = strdup(value);
                 return 0;
             }
         } else {
-            table->key[i] = (char*)malloc(sizeof(char) * (strlen(key) + 1));
-            strcpy(table->key[i], key);
-            table->value[i] = (char*)malloc(sizeof(char) * (strlen(key) + 1));
-            strcpy(table->value[i], value);
-            table->tombstone[i] = 1;
+            table->key[current] = strdup(key);
+            table->value[current] = strdup(value);
             return 0;
         }
-    }
+        current = (current + 1) % table->size;
+    } while (current != index);
     return 1;
 }
 
 void removeValueForKey(hashTable* table, char* key) {
-    unsigned long index = getStringHash(key) % table->size;
-    for (size_t i = 0; i < table->size; i++)
-        if (table->tombstone[i] && !strcmp(table->key[i], key)) {
-            free(table->key[i]);
-            free(table->value[i]);
-            table->tombstone[i] = 0;
-            for (size_t j = i + 1; j < table->size; j++)
-                if (table->tombstone[j]) {
-                    unsigned long position = getStringHash(table->key[j]) % table->size;
-                    for (size_t newPosition = position; newPosition < j; newPosition++)
-                        if (!table->tombstone[newPosition]) {
-                            table->tombstone[newPosition] = 1;
-                            table->key[newPosition] = table->key[j];
-                            table->value[newPosition] = table->value[j];
-                            table->tombstone[j] = 0;
+    size_t index = getStringHash(key) % table->size;
+    size_t current = index;
+    do {
+        if (table->key[current] && !strcmp(table->key[current], key)) {
+            free(table->key[current]);
+            table->key[current] = NULL;
+            free(table->value[current]);
+            size_t pos = (current + 1) % table->size;
+            do {
+                if (table->key[pos]) {
+                    size_t position = getStringHash(table->key[pos]) % table->size;
+                    size_t currentPosition = position;
+                    do {
+                        if (!table->key[currentPosition]) {
+                            table->key[currentPosition] = table->key[pos];
+                            table->value[currentPosition] = table->value[pos];
+                            table->key[pos] = NULL;
                             break;
                         }
+                        currentPosition = (currentPosition + 1) % table->size;
+                    } while (currentPosition != position);
                 }
+                pos = (pos + 1) % table->size;
+            } while (pos != current);
             return;
         }
+        current = (current + 1) % table->size;
+    } while (current != index);
 }
 
 int main(int argc, char** argv) {
