@@ -15,7 +15,7 @@ int addValueForKey(hashTable*, const char*, const char*);
 void printHashTable(hashTable*);
 void removeValueForKey(hashTable*, char*);
 const char* getValueForKey(hashTable*, const char*);
-unsigned long getStringHash(const char*);
+size_t getStringHash(const char*);
 
 hashTable* newHashTable(size_t size) {
     hashTable* ret = (hashTable*)malloc(sizeof(hashTable));
@@ -28,8 +28,8 @@ hashTable* newHashTable(size_t size) {
     return ret;
 }
 
-unsigned long getStringHash(const char* value) {
-    unsigned long hash = 7;
+size_t getStringHash(const char* value) {
+    size_t hash = 7;
     for (size_t i = 0; i < strlen(value); i++)
         hash = hash * 31 + value[i];
     return hash;
