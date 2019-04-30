@@ -1,5 +1,3 @@
-// Hash table, collision resolved by open addressing with linear probing.
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,7 +14,6 @@ void freeHashTable(hashTable*);
 int addValueForKey(hashTable*, const char*, const char*);
 void printHashTable(hashTable*);
 void removeValueForKey(hashTable*, char*);
-void removeValueForKeyReorder(hashTable*, char*);
 const char* getValueForKey(hashTable*, const char*);
 unsigned long getStringHash(const char*);
 
@@ -65,7 +62,6 @@ const char* getValueForKey(hashTable* table, const char* key) {
     return NULL;
 }
 
-//  return 0 on success, any other value otherwise
 int addValueForKey(hashTable* table, const char* key, const char* value) {
     unsigned long index = getStringHash(key) % table->size;
     for (size_t i = index; i < table->size; i++) {
@@ -95,17 +91,6 @@ void removeValueForKey(hashTable* table, char* key) {
             free(table->key[i]);
             free(table->value[i]);
             table->tombstone[i] = 0;
-            return;
-        }
-}
-
-void removeValueForKeyReorder(hashTable* table, char* key) {
-    unsigned long index = getStringHash(key) % table->size;
-    for (size_t i = 0; i < table->size; i++)
-        if (table->tombstone[i] && !strcmp(table->key[i], key)) {
-            free(table->key[i]);
-            free(table->value[i]);
-            table->tombstone[i] = 0;
             for (size_t j = i + 1; j < table->size; j++)
                 if (table->tombstone[j]) {
                     unsigned long position = getStringHash(table->key[j]) % table->size;
@@ -127,9 +112,8 @@ int main(int argc, char** argv) {
     size_t maxStringLen = 256;
     char input[maxStringLen];
     while (1) {
-        puts("usage: a <key> <value> - add value for key\n" \
+        puts("\nusage: a <key> <value> - add value for key\n" \
              "       r <key> - remove value for key\n" \
-             "       t <key> - remove value for key & reorder\n" \
              "       f <key> - get value for key\n" \
              "       p - print table\n" \
              "       q - quit");
@@ -137,7 +121,7 @@ int main(int argc, char** argv) {
         char* token = strtok(input, " ");
         switch (input[0]) {
             case 'a': {
-                const char* key = strtok(NULL, " ");
+                const char* key = strtok(NULL, " \n");
                 key = key ? key : "";
                 const char* value = strtok(NULL, "\n");
                 value = value ? value : "";
@@ -147,14 +131,13 @@ int main(int argc, char** argv) {
                     printHashTable(table);
                 break;
             }
-            case 'r':
-                removeValueForKey(table, strtok(NULL, "\n"));
+            case 'r': {
+                char *key = strtok(NULL, "\n");
+                key = key ? key : "";
+                removeValueForKey(table, key);
                 printHashTable(table);
                 break;
-            case 't':
-                removeValueForKeyReorder(table, strtok(NULL, "\n"));
-                printHashTable(table);
-                break;
+            }
             case 'f': {
                 const char* key = strtok(NULL, "\n");
                 key = key ? key : "";
@@ -171,10 +154,6 @@ int main(int argc, char** argv) {
             case 'q':
                 freeHashTable(table);
                 return 0;
-            case 'c':
-                freeHashTable(table);
-                table = newHashTable(atoi(strtok(NULL, "\n")));
-                break;
             default:
                 break;
         }
