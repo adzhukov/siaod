@@ -15,9 +15,21 @@
 #include <string.h>
 
 struct node {
+    int type;
     struct node *left;
     struct node *right;
-    int value;
+    union {
+        double value;
+        char op;
+        int var;
+    } value;
+};
+
+
+enum types {
+    valueNode,
+    opNode,
+    variableNode
 };
 
 typedef struct ExprTree {
@@ -25,14 +37,14 @@ typedef struct ExprTree {
 } ExprTree;
 
 struct vars {
-    unsigned int value;
+    double value;
     unsigned int valid;
 };
 
-struct vars vars[26];
+struct vars vars[256];
 
-struct node *newValueNode(int);
-struct node *newOpNode(int, struct node*, struct node*);
+struct node *newValueNode(double);
+struct node *newOpNode(char, struct node*, struct node*);
 struct node *newVarNode(char);
 ExprTree *makeTestTree();
 void freeExprTree(ExprTree*);
@@ -40,25 +52,28 @@ void freeExprTreeNode(struct node*);
 double evalNode(struct node*);
 double evalTree(ExprTree*);
 
-struct node *newValueNode(int value) {
+struct node *newValueNode(double value) {
     struct node *ret = malloc(sizeof(struct node));
+    ret->type = valueNode;
     ret->left = ret->right = NULL;
-    ret->value = value;
+    ret->value.value = value;
     return ret;
 }
 
-struct node *newOpNode(int op, struct node *left, struct node *right) {
+struct node *newOpNode(char op, struct node *left, struct node *right) {
     struct node *ret = malloc(sizeof(struct node));
+    ret->type = opNode;
     ret->left = left;
     ret->right = right;
-    ret->value = op;
+    ret->value.op = op;
     return ret;
 }
 
 struct node *newVarNode(char name) {
     struct node *ret = malloc(sizeof(struct node));
+    ret->type = variableNode;
     ret->left = ret->right = NULL;
-    ret->value = name;
+    ret->value.var = name;
     return ret;
 }
 
@@ -94,18 +109,17 @@ void freeExprTree(ExprTree *tree) {
 }
 
 double evalNode(struct node *node) {
-    if (!node->left && !node->right) {
-        if (node->value >= 'a' && node->value <= 'z') {
-            if (!vars[node->value - 'a'].valid) {
-                printf("enter variable %c: ", node->value);
-                scanf("%d", &(vars[node->value - 'a'].value));
-                vars[node->value - 'a'].valid = 1;
-            }
-            return vars[node->value - 'a'].value;
+    if (node->type == valueNode)
+        return node->value.value;
+    else if (node->type == variableNode) {
+        if (!vars[node->value.var].valid) {
+            printf("enter variable %c: ", node->value.var);
+            scanf("%lf", &(vars[node->value.var].value));
+            vars[node->value.var].valid = 1;
         }
-        return node->value;
+        return vars[node->value.var].value;
     }
-    switch (node->value) {
+    switch (node->value.op) {
         case '+':
             return evalNode(node->left) + evalNode(node->right);
             break;
