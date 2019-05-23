@@ -84,6 +84,10 @@ int addValueForKey(hashTable* table, const char* key, const char* value) {
     return 1;
 }
 
+static inline size_t offset(size_t from, size_t to, size_t table_size) {
+    return (from > to) ? table_size - to + from : to - from;
+}
+
 void removeValueForKey(hashTable* table, char* key) {
     size_t index = getStringHash(key) % table->size;
     size_t current = index;
@@ -95,10 +99,10 @@ void removeValueForKey(hashTable* table, char* key) {
             size_t pos = (current + 1) % table->size;
             size_t first_null = current;
             do {
-                printf("pos: %d; current: %d\n", pos, current);
                 if (!table->key[pos])
                     break;
-                if ((getStringHash(table->key[pos]) % table->size) <= first_null) {
+                size_t hash = getStringHash(table->key[pos]) % table->size;
+                if (offset(index, first_null, table->size) >= offset(index, hash, table->size)) {
                     table->key[first_null] = table->key[pos];
                     table->value[first_null] = table->value[pos];
                     table->key[pos] = NULL;
