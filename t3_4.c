@@ -5,9 +5,10 @@
 typedef struct table{
     char** key;
     char** value;
-    int* tombstone;
     size_t size;
 } hashTable;
+
+char tombstone;
 
 hashTable* newHashTable(size_t);
 void freeHashTable(hashTable*);
@@ -24,7 +25,6 @@ hashTable* newHashTable(size_t size) {
     for (size_t i = 0; i < size; i++)
         ret->key[i] = NULL;
     ret->value = (char**)malloc(sizeof(char*) * size);
-    ret->tombstone = (int*)calloc(size, sizeof(int));
     return ret;
 }
 
@@ -37,17 +37,16 @@ size_t getStringHash(const char* value) {
 
 void freeHashTable(hashTable* table) {
     for (size_t i = 0; i < table->size; i++)
-        if (table->key[i] && !table->tombstone) {
+        if (table->key[i] && table->key[i] != &tombstone) {
             free(table->key[i]);
             free(table->value[i]);
         }
-    free(table->tombstone);
     free(table);
 }
 
 void printHashTable(hashTable* table) {
     for (size_t i = 0; i < table->size; i++)
-        if (table->key[i] && !table->tombstone[i])
+        if (table->key[i] && table->key[i] != &tombstone)
             printf("  key: %s; value: %s\n", table->key[i], table->value[i]);
 }
 
@@ -57,7 +56,7 @@ const char* getValueForKey(hashTable* table, const char* key) {
     do {
         if (!table->key[current])
             break;
-        else if (!table->tombstone[current] && !strcmp(table->key[current], key))
+        else if (table->key[current] != &tombstone && !strcmp(table->key[current], key))
             return table->value[current];
         current = (current + 1) % table->size;
     } while (current != index);
@@ -68,10 +67,9 @@ int addValueForKey(hashTable* table, const char* key, const char* value) {
     size_t index = getStringHash(key) % table->size;
     size_t current = index;
     do {
-        if (table->tombstone[current]) {
+        if (table->key[current] == &tombstone) {
             table->key[current] = strdup(key);
             table->value[current] = strdup(value);
-            table->tombstone[current] = 0;
             return 0;
         } else if (!table->key[current]) {
             table->key[current] = strdup(key);
@@ -93,10 +91,10 @@ void removeValueForKey(hashTable* table, char* key) {
     do {
         if (!table->key[current])
             return;
-        if (!table->tombstone[current] && !strcmp(table->key[current], key)) {
+        if (table->key[current] != &tombstone && !strcmp(table->key[current], key)) {
             free(table->key[current]);
             free(table->value[current]);
-            table->tombstone[current] = 1;
+            table->key[current] = &tombstone;
             return;
         }
         current = (current + 1) % table->size;
