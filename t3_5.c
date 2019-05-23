@@ -46,7 +46,7 @@ void freeHashTable(hashTable* table) {
 void printHashTable(hashTable* table) {
     for (size_t i = 0; i < table->size; i++) {
         if (table->key[i]) {
-            printf("  key: %s; value: %s\n", table->key[i], table->value[i]);
+            printf("  %lu. key: %s; value: %s\n", i, table->key[i], table->value[i]);
         }
     }
 }
@@ -55,7 +55,9 @@ const char* getValueForKey(hashTable* table, const char* key) {
     size_t index = getStringHash(key) % table->size;
     size_t current = index;
     do {
-        if (table->key[current] && !strcmp(table->key[current], key))
+        if (!table->key[current])
+            return NULL;
+        if (!strcmp(table->key[current], key))
             return table->value[current];
         current = (current + 1) % table->size;
     } while (current != index);
@@ -91,19 +93,16 @@ void removeValueForKey(hashTable* table, char* key) {
             table->key[current] = NULL;
             free(table->value[current]);
             size_t pos = (current + 1) % table->size;
+            size_t first_null = current;
             do {
-                if (table->key[pos]) {
-                    size_t position = getStringHash(table->key[pos]) % table->size;
-                    size_t currentPosition = position;
-                    do {
-                        if (!table->key[currentPosition]) {
-                            table->key[currentPosition] = table->key[pos];
-                            table->value[currentPosition] = table->value[pos];
-                            table->key[pos] = NULL;
-                            break;
-                        }
-                        currentPosition = (currentPosition + 1) % table->size;
-                    } while (currentPosition != position);
+                printf("pos: %d; current: %d\n", pos, current);
+                if (!table->key[pos])
+                    break;
+                if ((getStringHash(table->key[pos]) % table->size) <= first_null) {
+                    table->key[first_null] = table->key[pos];
+                    table->value[first_null] = table->value[pos];
+                    table->key[pos] = NULL;
+                    first_null = pos;
                 }
                 pos = (pos + 1) % table->size;
             } while (pos != current);
