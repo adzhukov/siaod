@@ -52,7 +52,7 @@ void printHashTable(hashTable* table) {
 }
 
 const char* getValueForKey(hashTable* table, const char* key) {
-    size_t index = getStringHash(key) % table->size;
+    const size_t index = getStringHash(key) % table->size;
     size_t current = index;
     do {
         if (!table->key[current])
@@ -65,7 +65,7 @@ const char* getValueForKey(hashTable* table, const char* key) {
 }
 
 int addValueForKey(hashTable* table, const char* key, const char* value) {
-    size_t index = getStringHash(key) % table->size;
+    const size_t index = getStringHash(key) % table->size;
     size_t current = index;
     do {
         if (table->key[current]) {
@@ -89,9 +89,11 @@ static inline size_t offset(size_t from, size_t to, size_t table_size) {
 }
 
 void removeValueForKey(hashTable* table, char* key) {
-    size_t index = getStringHash(key) % table->size;
+    const size_t index = getStringHash(key) % table->size;
     size_t current = index;
     do {
+        if (!table->key[current])
+            return;
         if (table->key[current] && !strcmp(table->key[current], key)) {
             free(table->key[current]);
             table->key[current] = NULL;
@@ -101,8 +103,8 @@ void removeValueForKey(hashTable* table, char* key) {
             do {
                 if (!table->key[pos])
                     break;
-                size_t hash = getStringHash(table->key[pos]) % table->size;
-                if (offset(index, first_null, table->size) >= offset(index, hash, table->size)) {
+                const size_t hash = getStringHash(table->key[pos]) % table->size;
+                if ((hash <= first_null && pos >= index) || (offset(first_null, pos, table->size) <= offset(hash, pos, table->size) && pos < index)) {
                     table->key[first_null] = table->key[pos];
                     table->value[first_null] = table->value[pos];
                     table->key[pos] = NULL;
