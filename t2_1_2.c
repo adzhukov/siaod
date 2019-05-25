@@ -15,7 +15,11 @@
 #include <string.h>
 
 struct node {
-    int type;
+    enum types {
+        valueNode,
+        opNode,
+        variableNode
+    } type;
     struct node *left;
     struct node *right;
     union {
@@ -23,13 +27,6 @@ struct node {
         char op;
         int var;
     } value;
-};
-
-
-enum types {
-    valueNode,
-    opNode,
-    variableNode
 };
 
 typedef struct ExprTree {
@@ -148,7 +145,6 @@ double evalTree(ExprTree *tree) {
 }
 
 int main(int argc, char **argv) {
-    memset(vars, 0, sizeof(struct vars) * 26);
     ExprTree *tree = makeTestTree();
     double result = evalTree(tree);
     printf("result: %lf\n", result);
